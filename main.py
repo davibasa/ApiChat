@@ -12,7 +12,9 @@ import re
 
 required_version = version.parse("1.1.1")
 current_version = version.parse(openai.__version__)
-OPENAI_API_KEY = 'sk-proj-dMlRhRxrJfBrIEfZFlUMT3BlbkFJOi234S2kwqtcnPNcof2V'
+# OPENAI_API_KEY = 'sk-proj-dMlRhRxrJfBrIEfZFlUMT3BlbkFJOi234S2kwqtcnPNcof2V'
+OPENAI_API_KEY = 'sk-proj-yfiD8wdV84KOju5RPojRT3BlbkFJB42SDBLHyhsde7oewGHU'
+
 remover = regex.MarkdownRemover()
 
 if current_version < required_version:
