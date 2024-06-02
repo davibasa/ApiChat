@@ -27,38 +27,63 @@ def create_assistant(client):
     file = client.files.create(file=open("knowledge.docx", "rb"),
                                purpose='assistants')
     assistant = client.beta.assistants.create(
-        # Change prompting in prompts.py file
-        instructions=assistant_instructions,
-        model="gpt-3.5-turbo-0125",
-        tools=[
-              {
-                  "type": "file_search"                
-              },
-              {
-                "type": "function",
-                "function": 
-                {
-
-                  "name": "get_dentist_info",
-                  "description": """Retorna dados com LINK para consulta para agendar um a consulta com o dentista de acordo com o nome e/ou a especialidade fornecida e se a função retornar 'No  records found' significa que não foi encontrado nenhum dado no banco de dados""",
-                  "parameters": {
-                      "type": "object",
-                      "properties": {
-                          "name": {
-                              "type": "string",
-                              "description": "Name of the dentist. Dr. Marcelo Matos",
-                          },
-                          "specialist": {
-                              "type": "string",
-                              "description": "Specialist of the dentist. Odontologia",
-                          },
+                  instructions=assistant_instructions,
+                  model="gpt-3.5-turbo-0125",
+                  tools=[
+                      {
+                          "type": "file_search"
                       },
-                    "required": ["name"],
-                    }
-                },
-              }
-            ],
-        )
+                      {
+                          "type": "function",
+                          "function": {
+                              "name": "get_dentist_info",
+                              "description": """Retorna dados com LINK para consulta para agendar uma consulta com o dentista de acordo com o nome e/ou a especialidade fornecida e/ou procedimento fornecido e se a função retornar 'No  records found' significa que não foi encontrado nenhum dado no banco de dados""",
+                              "parameters": {
+                                  "type": "object",
+                                  "properties": {
+                                      "name": {
+                                          "type": "string",
+                                          "description": "Nome do dentista. Dr. Marcelo Matos",
+                                      },
+                                      "specialist": {
+                                          "type": "string",
+                                          "description": "Especialidade do dentista. Odontologia",
+                                      },
+                                      "procedure": {
+                                          "type": "string",
+                                          "description": "Procedimento de uma especialidade odontológica. Limpeza Dental",
+                                      },
+                                  },
+                                  "required": ["name"],
+                              }
+                          }
+                      },
+                      {
+                          "type": "function",
+                          "function": {
+                              "name": "get_specialist",
+                              "description": """Retorna todos as especialidades cadastradas do banco de dados"""
+                          }
+                      },
+                      {
+                          "type": "function",
+                          "function": {
+                              "name": "get_procedures",
+                              "description": """Retorna todos os procedimentos cadastrados do banco de dados""",
+                              "parameters": {
+                                  "type": "object",
+                                  "properties": {
+                                      "specialist": {
+                                          "type": "string",
+                                          "description": "Specialist of the dentist. Odontologia",
+                                      },
+                                  },
+                              }
+                          }
+                      }
+                  ]
+              )
+
     
     # Create a vector store caled "Financial Statements"
     vector_store = client.beta.vector_stores.create(name="Financial Statements")

@@ -22,9 +22,36 @@ def close_db_connection(db, cursor):
 
 def get_dentist_info(params):
     db, cursor = get_db_cursor()
-    cursor.callproc('get_dentist_info', [params.get('name', ''), params.get('specialist', '')])
-    result = None
+    print(params.get('name', ''))
+    print(params.get('specialist', ''))
+    print(params.get('procedure', ''))
+
+    cursor.callproc('sp_get_dentist_info', [params.get('name', ''), params.get('specialist', ''), params.get('procedure', '')])
+    result = []
     for res in cursor.stored_results():
-        result = res.fetchone()
+        result.extend(res.fetchall())
+        print(result)
+
+    close_db_connection(db, cursor)
+    return result
+
+
+def get_specialist():
+    db, cursor = get_db_cursor()
+    cursor.callproc('sp_get_all_specialities')
+    result = []
+    for res in cursor.stored_results():
+        result.extend(res.fetchall())
+        print(result)
+    close_db_connection(db, cursor)
+    return result
+
+def get_procedures(params):
+    db, cursor = get_db_cursor()
+    cursor.callproc('sp_get_procedures_by_specialty', [params.get("specialist", '')])
+    result = []
+    for res in cursor.stored_results():
+        result.extend(res.fetchall())
+        print(result)
     close_db_connection(db, cursor)
     return result

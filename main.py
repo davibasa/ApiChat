@@ -81,7 +81,7 @@ def check_run_status():
       for tool_call in run_status.required_action.submit_tool_outputs.tool_calls:
         if tool_call.function.name == "get_dentist_info":
           # Process lead creation
-          print("entrou")
+          print("get_dentist_info")
           arguments = json.loads(tool_call.function.arguments)
           output = db_helper.get_dentist_info(arguments)
           client.beta.threads.runs.submit_tool_outputs(thread_id=thread_id,
@@ -92,7 +92,30 @@ def check_run_status():
                                                            "output":
                                                            json.dumps(output)
                                                        }])
-      
+        elif tool_call.function.name == "get_specialist":
+          print("get_specialist")
+          output = db_helper.get_specialist()
+          client.beta.threads.runs.submit_tool_outputs(thread_id=thread_id,
+                                                       run_id=run_id,
+                                                       tool_outputs=[{
+                                                           "tool_call_id":
+                                                           tool_call.id,
+                                                           "output":
+                                                           json.dumps(output)
+                                                       }]) 
+        elif tool_call.function.name == "get_procedures":
+          print("get_procedures")
+          arguments = json.loads(tool_call.function.arguments)
+          output = db_helper.get_procedures(arguments)
+          client.beta.threads.runs.submit_tool_outputs(thread_id=thread_id,
+                                                       run_id=run_id,
+                                                       tool_outputs=[{
+                                                           "tool_call_id":
+                                                           tool_call.id,
+                                                           "output":
+                                                           json.dumps(output)
+                                                       }])
+        
    
     if run_status.status == 'completed':
 
@@ -101,18 +124,23 @@ def check_run_status():
       message_content = messages.data[0].content[0].text
       # Remove annotations
       annotations = message_content.annotations
+
       for annotation in annotations:
         message_content.value = message_content.value.replace(
             annotation.text, '')
-      
-      print(message_content.value)
-        
+
+      # print(message_content.value)
       array = []
       # Expressão regular para encontrar e substituir o Markdown pelo link puro
       mensagem_modificada = re.sub(r'\[.*?\]\((.*?)\)', r'\1', message_content.value)
 
-      print("Mensagem modificada:", mensagem_modificada)
       
+      info = re.findall('{clínica.name}', mensagem_modificada)
+      
+      if info != None:
+        mensagem_modificada = re.sub('{clínica.name}',  'Dentz', mensagem_modificada)  
+      
+      print("Mensagem modificada:", mensagem_modificada)
       # for mensagem in message_content.value.splitlines():
       for mensagem in mensagem_modificada.splitlines():
         # if mensagem.startswith("-"):
