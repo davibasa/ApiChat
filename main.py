@@ -9,11 +9,17 @@ import regex
 import db_helper
 from packaging import version
 import re
+from dotenv import load_dotenv
 
 required_version = version.parse("1.1.1")
 current_version = version.parse(openai.__version__)
 # OPENAI_API_KEY = 'sk-proj-dMlRhRxrJfBrIEfZFlUMT3BlbkFJOi234S2kwqtcnPNcof2V'
-OPENAI_API_KEY =  process.env.API_KEY
+# Carregar variáveis de ambiente do arquivo .env
+load_dotenv()
+
+# Acessar a chave da API armazenada em variáveis de ambiente
+OPENAI_API_KEY = os.getenv('API_KEY')
+
 
 remover = regex.MarkdownRemover()
 
