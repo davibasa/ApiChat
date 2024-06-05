@@ -24,15 +24,15 @@ def create_assistant(client):
 
     # To change the knowledge document, modify the file name below to match your document
     # If you want to add multiple files, paste this function into ChatGPT and ask for it to add support for multiple files
-    file = client.files.create(file=open("knowledge.docx", "rb"),
-                               purpose='assistants')
+    # file = client.files.create(file=open("knowledge.docx", "rb"),
+    #                            purpose='assistants')
     assistant = client.beta.assistants.create(
                   instructions=assistant_instructions,
                   model="gpt-3.5-turbo-0125",
                   tools=[
-                      {
-                          "type": "file_search"
-                      },
+                    #   {
+                    #       "type": "file_search"
+                    #   },
                       {
                           "type": "function",
                           "function": {
@@ -85,18 +85,18 @@ def create_assistant(client):
               )
 
     
-    # Create a vector store caled "Financial Statements"
-    vector_store = client.beta.vector_stores.create(name="Financial Statements")
+    # # Create a vector store caled "Financial Statements"
+    # vector_store = client.beta.vector_stores.create(name="Financial Statements")
     
-    # Ready the files for upload to OpenAI
-    file_paths = ["knowledge.docx"]
-    file_streams = [open(path, "rb") for path in file_paths]
+    # # Ready the files for upload to OpenAI
+    # file_paths = ["knowledge.docx"]
+    # file_streams = [open(path, "rb") for path in file_paths]
     
-    # Use the upload and poll SDK helper to upload the files, add them to the vector store,
-    # and poll the status of the file batch for completion.
-    client.beta.vector_stores.file_batches.upload_and_poll(
-      vector_store_id=vector_store.id, files=file_streams
-    )
+    # # Use the upload and poll SDK helper to upload the files, add them to the vector store,
+    # # and poll the status of the file batch for completion.
+    # client.beta.vector_stores.file_batches.upload_and_poll(
+    #   vector_store_id=vector_store.id, files=file_streams
+    # )
         
 
     # Create a new assistant.json file to load on future runs

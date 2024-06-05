@@ -143,10 +143,10 @@ def check_run_status():
       mensagem_modificada = re.sub(r'\[.*?\]\((.*?)\)', r'\1', message_content.value)
 
       
-      info = re.findall('{clínica.name}', mensagem_modificada)
+      info = re.findall('{clinic.name}', mensagem_modificada)
       
       if info != None:
-        mensagem_modificada = re.sub('{clínica.name}',  'Dentz', mensagem_modificada)  
+        mensagem_modificada = re.sub('{clinic.name}',  'Dentz', mensagem_modificada)  
       
       print("Mensagem modificada:", mensagem_modificada)
       # for mensagem in message_content.value.splitlines():
