@@ -4,7 +4,7 @@ import os
 from openai import OpenAI
 from prompts import assistant_instructions
 
-OPENAI_API_KEY = 'sk-proj-dMlRhRxrJfBrIEfZFlUMT3BlbkFJOi234S2kwqtcnPNcof2V'
+OPENAI_API_KEY = os.getenv('API_KEY')
 
 # Init OpenAI Client
 client = OpenAI(api_key=OPENAI_API_KEY)
