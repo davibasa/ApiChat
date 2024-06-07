@@ -122,7 +122,7 @@ def check_run_status():
                     info = re.findall('{clinic.name}', mensagem_modificada)
                     
                     if info:
-                        mensagem_modificada = re.sub('{clinic.name}', 'Dentz', mensagem_modificada)
+                        mensagem_modificada = re.sub('{clinic.name}', 'Odontocamp', mensagem_modificada)
 
                     for mensagem in mensagem_modificada.splitlines():
                         array.append(remover.remove_markdown(mensagem))
