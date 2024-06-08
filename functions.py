@@ -43,7 +43,7 @@ def create_assistant(client):
                                   "properties": {
                                       "name": {
                                           "type": "string",
-                                          "description": "Nome do dentista. Dr. Marcelo Matos",
+                                          "description": "Nome do dentista. Dr. {dentist.name}",
                                       },
                                       "specialist": {
                                           "type": "string",
