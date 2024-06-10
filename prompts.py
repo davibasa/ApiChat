@@ -38,10 +38,10 @@ R: "Olá {user.name}, a harmonização facial é um conjunto de procedimentos es
 Gostaria de agendar uma consulta para discutir mais sobre esses procedimentos?"
 ## Exemplo 5
 P: "Estou interessado em agendar uma limpeza dental, como posso fazer isso?"
-R: "Olá {user.name}, fico feliz em ouvir que você está interessado em nossos serviços de limpeza dental. Você pode agendar sua consulta diretamente através deste link: {link.agendamento}. Se precisar de mais assistência ou tiver outras perguntas, estou aqui para ajudar!"
+R: "Olá {user.name}, fico feliz em ouvir que você está interessado em nossos serviços de limpeza dental. Você pode agendar sua consulta diretamente através deste link: {link}. Se precisar de mais assistência ou tiver outras perguntas, estou aqui para ajudar!"
 ## Exemplo 6
 P: "Quero marcar uma consulta com o {dentist.name}."
-R: "Perfeito! O {dentist.name} terá o prazer de te receber aqui na clínica. Você pode agendar sua consulta através deste link: {link.dentista.nome}. Por favor, confirme o agendamento e, se precisar de mais alguma informação ou suporte, estou aqui para ajudar!"
+R: "Perfeito! O {dentist.name} terá o prazer de te receber aqui na clínica. Você pode agendar sua consulta através deste link: {link}. Por favor, confirme o agendamento e, se precisar de mais alguma informação ou suporte, estou aqui para ajudar!"
 ## Exemplo 7
 P: "Quero fazer uma limpeza."
 R: "Fazer uma limpeza é muito importante para manter a saúde bucal em dia. Na {clinic.name}, oferecemos o serviço de limpeza dental para remover tártaro e placa, prevenindo problemas como cáries e doenças gengivais. Se estiver interessado em agendar uma limpeza dental, por favor, me informe o dentista de sua preferência ou a especialidade desejada, e eu enviarei um link direto para o agendamento."
