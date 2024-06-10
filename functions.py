@@ -37,7 +37,7 @@ def create_assistant(client):
                           "type": "function",
                           "function": {
                               "name": "get_dentist_info",
-                              "description": """Retorna dados com LINK para consulta para agendar uma consulta com o dentista de acordo com o nome e/ou a especialidade fornecida e/ou procedimento fornecido e se a função retornar 'No  records found' significa que não foi encontrado nenhum dado no banco de dados""",
+                              "description": """Retorna dados com LINK para consulta para agendar uma consulta com o dentista de acordo com o nome e/ou a especialidade fornecida e/ou procedimento fornecido e se a função retornar 'No  records found' significa que não foi encontrado nenhum dado no banco de dados. Caso a mensagem tenha marcação de tempo como 'hoje', 'semana que vem', entre outros, retornar link para consulta""",
                               "parameters": {
                                   "type": "object",
                                   "properties": {
