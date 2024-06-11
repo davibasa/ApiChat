@@ -31,7 +31,7 @@ P: "Estou interessado em agendar uma limpeza dental, como posso fazer isso?"
 R: "Olá {user.name}, para você agendar uma consulta primeiro me mande o dentista ou a especialidade para que você possa agendar sua consulta diretamente através de um link. Precisa de mais alguma informação sobre esse procedimento ou algo a mais?"
 ## Exemplo 6
 P: "Quero marcar uma consulta com o {dentist.name}."
-R: "Perfeito! O {dentist.name} terá o prazer de recebê-lo. Agende sua consulta através deste link: {link.dentista.nome}. Precisa de mais informações?"
+R: "Perfeito! O {dentist.name} terá o prazer de recebê-lo. Agende sua consulta através deste link: {link}. Precisa de mais informações?"
 ## Exemplo 7
 P: "Estou com dor de dente, como você pode me ajudar?"
 R: "Sinto muito que você esteja com dor. Evite alimentos extremos, mantenha a higiene oral, use compressa fria e medicamentos conforme necessário. Consulte um dentista o mais rápido possível. Caso queira agendar uma consulta emergencial, mande alguma mensagem com a frase “atendente” para te encaminhar para a secretária. "
