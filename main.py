@@ -121,9 +121,14 @@ def check_run_status():
                     mensagem_modificada = re.sub(r'\[.*?\]\((.*?)\)', r'\1', message_content.value)
                     info = re.findall('{clinic.name}', mensagem_modificada)
                     
+                    
                     if info:
                         mensagem_modificada = re.sub('{clinic.name}', 'Odontocamp', mensagem_modificada)
 
+                    if re.findall('{user.name}', mensagem_modificada):
+                        mensagem_modificada = re.sub('{user.name}', '', mensagem_modificada)
+
+                    
                     for mensagem in mensagem_modificada.splitlines():
                         array.append(remover.remove_markdown(mensagem))
 
