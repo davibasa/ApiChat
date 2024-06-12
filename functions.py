@@ -80,7 +80,14 @@ def create_assistant(client):
                                   },
                               }
                           }
-                      }
+                      },
+                      {
+                          "type": "function",
+                          "function": {
+                              "name": "get_emergency",
+                              "description": """Caso seja uma emergência ou um desejo de falar diretamente com o atendente."""
+                          }
+                      },
                   ]
               )
 
