@@ -57,6 +57,24 @@ def get_specialist():
     finally:
         close_db_connection(db, cursor)
 
+def get_all_dentist():
+    db, cursor = get_db_cursor()
+    if not db or not cursor:
+        return {"error": "Failed to connect to the database"}
+
+    try:
+        cursor.callproc('sp_get_all_dentist')
+        result = []
+        for res in cursor.stored_results():
+            result.extend(res.fetchall())
+            print(result)
+        return result
+    except Error as e:
+        print(f"Error executing stored procedure 'sp_get_all_dentist': {e}")
+        return {"error": f"Failed to retrieve dentist: {e}"}
+    finally:
+        close_db_connection(db, cursor)
+
 def get_procedures(params):
     db, cursor = get_db_cursor()
     if not db or not cursor:

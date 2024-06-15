@@ -65,6 +65,13 @@ def create_assistant(client):
                               "description": """Retorna todos as especialidades cadastradas do banco de dados"""
                           }
                       },
+                       {
+                          "type": "function",
+                          "function": {
+                              "name": "get_all_dentist",
+                              "description": """Retorna todos os dentistas da clinica com as especialidades de cada um cadastradas do banco de dados"""
+                          }
+                      },
                       {
                           "type": "function",
                           "function": {

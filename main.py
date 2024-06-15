@@ -93,11 +93,13 @@ def check_run_status():
                             output = db_helper.get_dentist_info(arguments)
                         elif tool_call.function.name == "get_specialist":
                             output = db_helper.get_specialist()
-                        elif tool_call.function.name == "get_emergency":
-                            output = "Atendente necessária"
+                        elif tool_call.function.name == "get_all_dentist":
+                            output = db_helper.get_all_dentist()
                         elif tool_call.function.name == "get_procedures":
                             arguments = json.loads(tool_call.function.arguments)
                             output = db_helper.get_procedures(arguments)
+                        elif tool_call.function.name == "get_emergency":
+                            output = "Atendente necessária"
                         else:
                             output = None
 
