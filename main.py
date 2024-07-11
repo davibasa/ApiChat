@@ -123,11 +123,11 @@ def check_run_status():
 
                     array = []
                     mensagem_modificada = re.sub(r'\[.*?\]\((.*?)\)', r'\1', message_content.value)
-                    info = re.findall('{clinic.name}', mensagem_modificada)
+                    info = re.findall('{clinica}', mensagem_modificada)
                     
                     
                     if info:
-                        mensagem_modificada = re.sub('{clinic.name}', 'Odontocamp', mensagem_modificada)
+                        mensagem_modificada = re.sub('{clinica}', 'Odontocamp', mensagem_modificada)
 
                     if re.findall('{user.name}', mensagem_modificada):
                         mensagem_modificada = re.sub('{user.name}', '', mensagem_modificada)
