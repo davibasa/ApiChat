@@ -1,154 +1,114 @@
-import json
-import os
-import time
 from flask import Flask, request, jsonify
-import openai
-from openai import OpenAI
-import functions
-import regex
-import db_helper
-from packaging import version
-import re
 from dotenv import load_dotenv
-
-required_version = version.parse("1.1.1")
-current_version = version.parse(openai.__version__)
-# OPENAI_API_KEY = 'sk-proj-dMlRhRxrJfBrIEfZFlUMT3BlbkFJOi234S2kwqtcnPNcof2V'
-# Carregar variáveis de ambiente do arquivo .env
+from langchain.agents import AgentExecutor, create_tool_calling_agent
+from langchain.memory import ConversationBufferMemory
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+from langchain_core.tools import Tool
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.runnables.history import RunnableWithMessageHistory
+from langchain_community.chat_message_histories import SQLChatMessageHistory
+from sqlalchemy import create_engine
+import os
+from urllib.parse import quote_plus
+from sqlalchemy.exc import OperationalError
+import datetime
+from tools import tools
+from prompt import assistant_instructions
+import re
+import regex
 load_dotenv()
+remove = regex.MarkdownRemover()
 
-# Acessar a chave da API armazenada em variáveis de ambiente
-OPENAI_API_KEY = os.getenv('API_KEY')
-
-if not OPENAI_API_KEY:
-    raise ValueError("Error: Missing API_KEY in environment variables")
-
-remover = regex.MarkdownRemover()
-
-if current_version < required_version:
-    raise ValueError(f"Error: OpenAI version {openai.__version__} is less than the required version 1.1.1")
-else:
-    print("OpenAI version is compatible.")
+# Encode the password to handle special characters
+password = quote_plus(os.getenv('MYSQL_PASSWORD'))
+connection_string = f"mysql+mysqlconnector://{os.getenv('MYSQL_USERNAME')}:{password}@{os.getenv('MYSQL_HOST')}:{os.getenv('MYSQL_PORT')}/{os.getenv('MYSQL_DATABASE')}"
+connection = create_engine(connection_string, pool_pre_ping=True)
 
 app = Flask(__name__)
-client = OpenAI(api_key=OPENAI_API_KEY)
 
-try:
-    assistant_id = functions.create_assistant(client)
-    print("Assistant created with ID:", assistant_id)
-except Exception as e:
-    print(f"Error creating assistant: {e}")
-    assistant_id = None
+def CreateBot():
+    model = ChatOpenAI(model="gpt-3.5-turbo")
 
-@app.route('/start', methods=['GET'])
-def start_conversation():
-    try:
-        thread = client.beta.threads.create()
-        print("New conversation started with thread ID:", thread.id)
-        return jsonify({"thread_id": thread.id})
-    except Exception as e:
-        print(f"Error starting conversation: {e}")
-        return jsonify({"error": "Failed to start conversation"}), 500
+    prompt = ChatPromptTemplate.from_messages(
+            [
+                ("system", assistant_instructions),
+                MessagesPlaceholder(variable_name="history"),
+                ("human", "{input}"),
+                ("placeholder", "{agent_scratchpad}"),
+                ("placeholder", "{tool_names}"),
+                ("placeholder", "{tools}"),
+                ("placeholder", "{clinica}"),
+            ]
+        )
+
+    agent = create_tool_calling_agent(
+        llm=model,
+        tools=tools,  # Adicione suas ferramentas aqui
+        prompt=prompt,
+    )
+
+    agent_executor = AgentExecutor.from_agent_and_tools(
+        agent=agent,
+        tools=tools,  # Adicione suas ferramentas aqui
+        verbose=True,
+        handle_parsing_errors=True
+    )
+
+    agent_with_chat_history = RunnableWithMessageHistory(
+            agent_executor,
+            get_session_history,
+            input_messages_key="input",
+            history_messages_key="history",
+            agent_scratchpad_key="agent_scratchpad"
+        )
+
+    return agent_with_chat_history
+
+def get_session_history(session_id):
+    return SQLChatMessageHistory(session_id, connection_string)
+
+def add_message_to_history(session_id, message, message_type="human"):
+    history = get_session_history(session_id)
+    if message_type == "human":
+        history.add_user_message(message)
+    elif message_type == "ai":
+        history.add_ai_message(message)
+    elif message_type == "system":
+        history.add_message(SystemMessage(content=message))
+
+agent_with_chat_history = CreateBot()
+
 
 @app.route('/chat', methods=['POST'])
 def chat():
+    print("entrou")
     data = request.json
-    thread_id = data.get('thread_id')
-    user_input = data.get('message')
-
-    if not thread_id or not user_input:
-        print("Error: Missing thread_id or message in /chat")
-        return jsonify({"error": "Missing thread_id or message"}), 400
-
+    query = data['query']
+    numberFrom = data.get('numberFrom')
+    numberTo = data.get('numberTo')
+    clinic = data.get('clinic')
+    primeira = data.get('primeira')
+    session_id = f"session_id_{datetime.datetime.now().strftime('%d/%m/%Y')}_{numberFrom}_{numberTo}_{clinic}"
+    
+    if primeira:
+        # Adiciona uma mensagem de contexto ao histórico como sistema
+        add_message_to_history(session_id, "A clinica é Odontocamp", message_type="system")
+        primeira = False
+        
     try:
-        client.beta.threads.messages.create(thread_id=thread_id, role="user", content=user_input)
-        run = client.beta.threads.runs.create(thread_id=thread_id, assistant_id=assistant_id)
-        print("Run started with ID:", run.id)
-        return jsonify({"run_id": run.id})
+        response_in_lines = []
+        response = agent_with_chat_history.invoke({"input": query}, config={"configurable": {"session_id": session_id}})
+        response_modified = re.sub(r'\[.*?\]\((.*?)\)', r'\1',  response["output"])
+        for msg in response_modified.splitlines():
+            response_in_lines.append(remove.remove_markdown(msg))
+
+        print(response_in_lines)
+        return jsonify({"response": response_in_lines, "status": "completed"})
+    except OperationalError:
+        return jsonify({"error": "Database connection error"}), 500
     except Exception as e:
-        print(f"Error in /chat: {e}")
-        return jsonify({"error": "Failed to create chat or run"}), 500
+        return jsonify({"error": f"Erro ao processar a solicitação: {str(e)}"}), 500
 
-@app.route('/check', methods=['POST'])
-def check_run_status():
-    data = request.json
-    thread_id = data.get('thread_id')
-    run_id = data.get('run_id')
-
-    if not thread_id or not run_id:
-        print("Error: Missing thread_id or run_id in /check")
-        return jsonify({"error": "Missing thread_id or run_id"}), 400
-
-    try:
-        start_time = time.time()
-        while time.time() - start_time < 30:
-            run_status = client.beta.threads.runs.retrieve(thread_id=thread_id, run_id=run_id)
-            print("Checking run status:", run_status.status)
-
-            if run_status.status == 'requires_action':
-                for tool_call in run_status.required_action.submit_tool_outputs.tool_calls:
-                    try:
-                        if tool_call.function.name == "get_dentist_info":
-                            arguments = json.loads(tool_call.function.arguments)
-                            output = db_helper.get_dentist_info(arguments)
-                        elif tool_call.function.name == "get_specialist":
-                            output = db_helper.get_specialist()
-                        elif tool_call.function.name == "get_all_dentist":
-                            output = db_helper.get_all_dentist()
-                        elif tool_call.function.name == "get_procedures":
-                            arguments = json.loads(tool_call.function.arguments)
-                            output = db_helper.get_procedures(arguments)
-                        elif tool_call.function.name == "get_emergency":
-                            output = "Atendente necessária"
-                        else:
-                            output = None
-
-                        if output is not None:
-                            client.beta.threads.runs.submit_tool_outputs(
-                                thread_id=thread_id,
-                                run_id=run_id,
-                                tool_outputs=[{"tool_call_id": tool_call.id, "output": json.dumps(output)}]
-                            )
-                    except Exception as e:
-                        print(f"Error processing tool call {tool_call.function.name}: {e}")
-
-            if run_status.status == 'completed':
-                try:
-                    messages = client.beta.threads.messages.list(thread_id=thread_id)
-                    message_content = messages.data[0].content[0].text
-                    annotations = message_content.annotations
-
-                    for annotation in annotations:
-                        message_content.value = message_content.value.replace(annotation.text, '')
-
-                    array = []
-                    mensagem_modificada = re.sub(r'\[.*?\]\((.*?)\)', r'\1', message_content.value)
-                    info = re.findall('{clinica}', mensagem_modificada)
-                    
-                    
-                    if info:
-                        mensagem_modificada = re.sub('{clinica}', 'Odontocamp', mensagem_modificada)
-
-                    if re.findall('{user.name}', mensagem_modificada):
-                        mensagem_modificada = re.sub('{user.name}', '', mensagem_modificada)
-
-                    
-                    for mensagem in mensagem_modificada.splitlines():
-                        array.append(remover.remove_markdown(mensagem))
-
-                    print("Run completed, returning response")
-                    return jsonify({"response": array, "status": "completed"})
-                except Exception as e:
-                    print(f"Error processing completed run: {e}")
-                    return jsonify({"error": "Failed to process completed run"}), 500
-
-            time.sleep(1)
-
-        print("Run timed out")
-        return jsonify({"response": "timeout"}), 504
-    except Exception as e:
-        print(f"Error checking run status: {e}")
-        return jsonify({"error": "Failed to check run status"}), 500
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(host='0.0.0.0', port=8080)
