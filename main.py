@@ -28,42 +28,45 @@ connection = create_engine(connection_string, pool_pre_ping=True)
 app = Flask(__name__)
 
 def CreateBot():
-    model = ChatOpenAI(model="gpt-3.5-turbo")
+    try:
+        model = ChatOpenAI(model="gpt-3.5-turbo")
 
-    prompt = ChatPromptTemplate.from_messages(
-            [
-                ("system", assistant_instructions),
-                MessagesPlaceholder(variable_name="history"),
-                ("human", "{input}"),
-                ("placeholder", "{agent_scratchpad}"),
-                ("placeholder", "{tool_names}"),
-                ("placeholder", "{tools}"),
-                ("placeholder", "{clinica}"),
-            ]
+        prompt = ChatPromptTemplate.from_messages(
+                [
+                    ("system", assistant_instructions),
+                    MessagesPlaceholder(variable_name="history"),
+                    ("human", "{input}"),
+                    ("placeholder", "{agent_scratchpad}"),
+                    ("placeholder", "{tool_names}"),
+                    ("placeholder", "{tools}"),
+                    ("placeholder", "{clinica}"),
+                ]
+            )
+
+        agent = create_tool_calling_agent(
+            llm=model,
+            tools=tools,  # Adicione suas ferramentas aqui
+            prompt=prompt,
         )
 
-    agent = create_tool_calling_agent(
-        llm=model,
-        tools=tools,  # Adicione suas ferramentas aqui
-        prompt=prompt,
-    )
-
-    agent_executor = AgentExecutor.from_agent_and_tools(
-        agent=agent,
-        tools=tools,  # Adicione suas ferramentas aqui
-        verbose=True,
-        handle_parsing_errors=True
-    )
-
-    agent_with_chat_history = RunnableWithMessageHistory(
-            agent_executor,
-            get_session_history,
-            input_messages_key="input",
-            history_messages_key="history",
-            agent_scratchpad_key="agent_scratchpad"
+        agent_executor = AgentExecutor.from_agent_and_tools(
+            agent=agent,
+            tools=tools,  # Adicione suas ferramentas aqui
+            verbose=True,
+            handle_parsing_errors=True
         )
 
-    return agent_with_chat_history
+        agent_with_chat_history = RunnableWithMessageHistory(
+                agent_executor,
+                get_session_history,
+                input_messages_key="input",
+                history_messages_key="history",
+                agent_scratchpad_key="agent_scratchpad"
+            )
+
+        return agent_with_chat_history
+    except Exception as e:
+        print(e)
 
 def get_session_history(session_id):
     return SQLChatMessageHistory(session_id, connection_string)
@@ -108,6 +111,7 @@ def chat():
     except OperationalError:
         return jsonify({"error": "Database connection error"}), 500
     except Exception as e:
+        print(e)
         return jsonify({"error": f"Erro ao processar a solicitação: {str(e)}"}), 500
 
 if __name__ == "__main__":
